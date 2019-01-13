@@ -1,0 +1,18 @@
+{{#intro}}
+{{ text }}
+{{ link }}
+{{ img }}
+{{ imgText }}
+{{/intro}}
+
+---
+
+{{ strings.address }}
+
+{{ strings.questions }} info@d-sektionen.se
+
+{{ strings.privacyPolicy }}
+https://d-sektionen.se/wp-content/uploads/2018/05/Policy-datahantering-D-sektionen.pdf
+
+{{ strings.unsubscribe }}
+https://d-sektionen.se/infomail/

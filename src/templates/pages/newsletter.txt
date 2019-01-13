@@ -1,0 +1,53 @@
+{{#intro}}
+{{ text }}
+{{ link }}
+{{ img }}
+{{ imgText }}
+{{/intro}}
+{{#news}}
+
+{{ title }}
+{{ description }}
+
+{{ linkText }}{{^linkText}}{{ strings.readMore }}{{/linkText}}
+{{ link }}
+
+{{/news}}
+
+{{ strings.upcomingEvents }}
+https://d-sektionen.se/kalender
+
+{{#events}}
+{{ title }}, {{ dateTimeString }}
+{{/events}}
+
+
+{{ strings.featuredJobs }}
+https://d-sektionen.se/jobb
+{{#jobs}}
+
+{{ title }}
+{{ link }}
+{{/jobs}}
+
+{{ strings.socialMedia }}
+{{ strings.facebook }}
+https://www.facebook.com/datateknologsektionen/
+{{ strings.facebookGroup }}
+https://www.facebook.com/groups/detbasta/
+{{ strings.instagram }}
+https://www.instagram.com/dsektionen/
+{{ strings.moreSocialMedia }}
+https://d-sektionen.se/socialamedier
+
+---
+
+{{ strings.address }}
+
+{{ strings.questions }} info@d-sektionen.se
+
+{{ strings.privacyPolicy }}
+https://d-sektionen.se/wp-content/uploads/2018/05/Policy-datahantering-D-sektionen.pdf
+
+{{ strings.unsubscribe }}
+https://d-sektionen.se/infomail/

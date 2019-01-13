@@ -1,0 +1,59 @@
+<wrapper class="header">
+  <container>
+    <row class="collapse">
+      <columns small="12">
+        <a href="https://d-sektionen.se">
+          <img src="https://d-sektionen.se/file_archive/sektionsdokument/logotyper/Color_white.png"/>
+        </a>
+      </columns>
+    </row>
+  </container>
+</wrapper>
+
+<spacer size="16"></spacer>
+
+<container>
+  <spacer size="16"></spacer>
+  <row>
+    <columns>
+      <h1>{{ subject }}</h1>
+      <!--<p><a href="#">{{ strings.looksWierd }}</a></p>-->
+      <hr/>
+    </columns>
+  </row>
+  {{#intro}}
+    <row>
+      <columns>
+        <p class="lead">{{#md}}{{ text }}{{/md}}</p>
+      </columns>
+    </row>
+    {{#img}}
+    <center>
+      <a href="{{ link }}">
+        <img src="{{ img }}" alt="">
+      </a>
+    </center>
+    <callout class="primary">
+      <p>{{ imgText }}</p>
+    </callout>
+    {{/img}}
+  {{/intro}}
+</container>
+
+<spacer size="16"></spacer>
+
+<container class="footer">
+  <center>
+    {{ strings.address }}
+  </center>
+  <spacer size="8"></spacer>
+  <center>
+    {{ strings.questions }} <a href="mailto:info@d-sektionen.se">info@d-sektionen.se</a>
+  </center>
+  <center>
+    <menu>
+      <item href="https://d-sektionen.se/wp-content/uploads/2018/05/Policy-datahantering-D-sektionen.pdf">{{ strings.privacyPolicy }}</item>
+      <item href="https://d-sektionen.se/infomail/">{{ strings.unsubscribe }}</item>
+    </menu>
+  </center>
+</container>

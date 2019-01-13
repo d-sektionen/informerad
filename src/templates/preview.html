@@ -1,0 +1,47 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>InformeraD Preview</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        display: grid;
+        grid-template-columns: minmax(500px, 5fr) 3fr;
+        grid-template-rows: auto 1fr;
+        height: 100vh;
+        grid-gap: 2px;
+        background: black;
+      }
+      body > * {
+        background: white;
+      }
+
+      h1 {
+        padding: 1rem;
+        margin: 0;
+        text-align: center;
+        background: lightgreen;
+      }
+      small {
+        color: darkslategray;
+      }
+      iframe {
+        height: 100%;
+        width: 100%;
+        border: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>
+      HTML Preview <small>{{ htmlSize }} bytes</small>
+    </h1>
+    <h1>
+      Text Preview <small>{{ textSize }} bytes</small>
+    </h1>
+    <iframe src="{{ htmlOutput }}"></iframe>
+    <iframe src="{{ textOutput }}"></iframe>
+  </body>
+</html>
