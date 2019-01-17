@@ -2,6 +2,7 @@ import { Command, flags } from "@oclif/command";
 import cli from "cli-ux";
 import * as inquirer from "inquirer";
 import * as clipboardy from "clipboardy";
+import * as inquirerDatepickerPrompt from "inquirer-datepicker-prompt";
 
 import textStrings from "../modules/textStrings";
 import wpUserRetriever from "../modules/wpUserRetriever";
@@ -13,6 +14,8 @@ import htmlCreator from "../modules/htmlCreator";
 import textCreator from "../modules/textCreator";
 import writeToFiles from "../modules/writeToFiles";
 import mailgunSender from "../modules/mailgunSender";
+
+inquirer.registerPrompt("datetime", inquirerDatepickerPrompt);
 
 const PREVIEW_TYPES = {
   open: link => cli.open(link),
@@ -35,6 +38,9 @@ export default class Send extends Command {
     wp: flags.boolean({
       description: "retrieve recipients from Wordpress"
     }),
+    schedule: flags.boolean({
+      description: "get prompted to schedule sending"
+    }),
     content: flags.string({
       description: "path to folder of mail content"
     }),
@@ -52,13 +58,16 @@ export default class Send extends Command {
       description: "the email layout template",
       options: ["newsletter", "announcement"],
       default: "newsletter"
+    }),
+    test: flags.boolean({
+      description: "enable mailgun test mode"
     })
   };
 
   // the actual command, check oclif docs for more info.
   async run() {
     const { flags } = this.parse(Send);
-    const { wp, recipients, content, layout } = flags;
+    const { wp, recipients, content, layout, schedule, test } = flags;
     let { preview, title } = flags;
 
     // state variable that is passed through all the modules.
@@ -70,7 +79,10 @@ export default class Send extends Command {
       from: {
         address: "infomail@d-sektionen.se",
         text: "D-sektionens infomail"
-      }
+      },
+
+      scheduled: "",
+      testing: false
     };
 
     // loads config user has set using the "setting" command
@@ -78,6 +90,33 @@ export default class Send extends Command {
 
     // module to import
     state = await textStrings(state);
+
+    state.testing = test;
+
+    if (schedule) {
+      const { datetime } = await inquirer.prompt([
+        {
+          type: "datetime",
+          name: "datetime",
+          message:
+            "When should the email be sent? (max 3 days into the future)",
+          format: [
+            "yyyy",
+            "-",
+            "mm",
+            "-",
+            "dd",
+            " ",
+            "HH",
+            ":",
+            "MM",
+            ":",
+            "ss"
+          ]
+        }
+      ]);
+      state.scheduled = new Date(datetime).toUTCString();
+    }
 
     // set title if unset.
     if (!title) {

@@ -32,6 +32,8 @@ const sendEmail = (state, key) =>
       "recipient-variables",
       getRecipientVariables(state.recipients)
     );
+    if (state.scheduled) formData.append("o:deliverytime", state.scheduled);
+    if (state.testing) formData.append("o:testmode", "true");
 
     axios
       .post(`${apiBase(key)}messages`, formData, {
