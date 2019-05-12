@@ -3,7 +3,9 @@
     <row class="collapse">
       <columns small="12">
         <a href="https://d-sektionen.se">
-          <img src="https://d-sektionen.se/file_archive/sektionsdokument/logotyper/Color_white.png"/>
+          <img
+            src="https://d-sektionen.se/file_archive/sektionsdokument/logotyper/Color_white.png"
+          />
         </a>
       </columns>
     </row>
@@ -18,91 +20,113 @@
     <columns>
       <h1>{{ subject }}</h1>
       <!--<p><a href="#">{{ strings.looksWierd }}</a></p>-->
-      <hr/>
+      <hr />
     </columns>
   </row>
   {{#intro}}
-    <row>
-      <columns>
-        <p class="lead">{{#md}}{{ text }}{{/md}}</p>
-      </columns>
-    </row>
-    {{#img}}
-    <center>
-      <a href="{{ link }}">
-        <img src="{{ img }}" alt="">
-      </a>
-    </center>
-    {{#imgText}}
-    <callout class="primary">
-      <p>{{ imgText }}</p>
-    </callout>
-    {{/imgText}}
-    {{^imgText}}
-    <spacer size="16"></spacer>
-    {{/imgText}}
-    {{/img}}
-    {{^img}}
-    <row>
-      <columns>
-        <hr/>
-      </columns>
-    </row>
-    {{/img}}
+  <row>
+    <columns>
+      <p class="lead">{{#md}}{{ text }}{{/md}}</p>
+    </columns>
+  </row>
+  {{#img}}
+  <center>
+    <a href="{{ link }}">
+      <img src="{{ img }}" alt="" />
+    </a>
+  </center>
+  {{#imgText}}
+  <callout class="primary">
+    <p>{{ imgText }}</p>
+  </callout>
+  {{/imgText}}
+  {{^imgText}}
+  <spacer size="16"></spacer>
+  {{/imgText}}
+  {{/img}}
+  {{^img}}
+  <row>
+    <columns>
+      <hr />
+    </columns>
+  </row>
+  {{/img}}
   {{/intro}}
   <row>
     <columns large="8">
       {{#news}}
-        <h5>{{ title }}</h5>
-        {{#img}}
-        <a href="{{ imgLink }}">
-          <img src="{{ img }}" alt="">
-        </a>
-        <spacer size="8"></spacer>
-        {{/img}}
-        {{#md}}{{ description }}{{/md}}
-        {{#link}}
-        <button href="{{ link }}" class="small secondary">{{ linkText }}{{^linkText}}{{ strings.readMore }}{{/linkText}}</button>
-        {{/link}}
-        {{^link}}
-        <spacer size="24"></spacer>
-        {{/link}}
+      <h2>{{ title }}</h2>
+      {{#img}}
+      <a href="{{ imgLink }}">
+        <img src="{{ img }}" alt="" />
+      </a>
+      <spacer size="8"></spacer>
+      {{/img}}
+      {{#md}}{{ description }}{{/md}}
+      {{#link}}
+      <button href="{{ link }}" class="small secondary">
+        {{ linkText }}{{^linkText}}{{ strings.readMore }}{{/linkText}}
+      </button>
+      {{/link}}
+      {{^link}}
+      <spacer size="24"></spacer>
+      {{/link}}
       {{/news}}
       {{#events.length}}
       <callout class="secondary">
-        <h5>{{ strings.upcomingEvents }}</h5>
+        <h2>{{ strings.upcomingEvents }}</h2>
         {{#events}}
-          <p>
-            <strong>{{ title }}</strong>
-            <br/>
-            {{ dateTimeString }}
-          </p>
+        <p>
+          <strong>{{ title }}</strong>
+          <br />
+          {{ dateTimeString }}
+        </p>
         {{/events}}
-        <button class="expand" href="https://d-sektionen.se/kalender">{{ strings.viewCalendar }}</button>
+        <button class="expand" href="https://d-sektionen.se/kalender">
+          {{ strings.viewCalendar }}
+        </button>
       </callout>
       {{/events.length}}
     </columns>
     <columns large="4" class="sidebar">
       {{#jobs.length}}
       <callout class="secondary">
-        <h5>{{ strings.featuredJobs }}</h5>
+        <h2>{{ strings.featuredJobs }}</h2>
         <menu class="vertical">
           {{#jobs}}
-            <item href="{{ link }}">{{ title }} &raquo;</item>
+          <item href="{{ link }}">{{ title }} &raquo;</item>
           {{/jobs}}
         </menu>
-        <button class="expand" href="https://d-sektionen.se/jobb">{{ strings.showAllJobs }}</button>
+        <button class="expand" href="https://d-sektionen.se/jobb">
+          {{ strings.showAllJobs }}
+        </button>
       </callout>
       {{/jobs.length}}
 
       <callout class="secondary">
-        <h5>{{ strings.socialMedia }}</h5>
-        <button class="facebook expand" href="https://www.facebook.com/datateknologsektionen/">{{ strings.facebook }}</button>
-        <button class="facebook expand" href="https://www.facebook.com/groups/detbasta/">{{ strings.facebookGroup }}</button>
-        <button class="instagram expand" href="https://www.instagram.com/dsektionen/">{{ strings.instagram }}</button>
-        <button class="expand" href="https://d-sektionen.se/socialamedier">{{ strings.moreSocialMedia }}</button>
+        <h2>{{ strings.socialMedia }}</h2>
+        <button
+          class="facebook expand"
+          href="https://www.facebook.com/datateknologsektionen/"
+        >
+          {{ strings.facebook }}
+        </button>
+        <button
+          class="facebook expand"
+          href="https://www.facebook.com/groups/detbasta/"
+        >
+          {{ strings.facebookGroup }}
+        </button>
+        <button
+          class="instagram expand"
+          href="https://www.instagram.com/dsektionen/"
+        >
+          {{ strings.instagram }}
+        </button>
+        <button class="expand" href="https://d-sektionen.se/socialamedier">
+          {{ strings.moreSocialMedia }}
+        </button>
       </callout>
-
     </columns>
   </row>
 </container>
@@ -115,12 +139,18 @@
   </center>
   <spacer size="8"></spacer>
   <center>
-    {{ strings.questions }} <a href="mailto:info@d-sektionen.se">info@d-sektionen.se</a>
+    {{ strings.questions }}
+    <a href="mailto:info@d-sektionen.se">info@d-sektionen.se</a>
   </center>
   <center>
     <menu>
-      <item href="https://d-sektionen.se/wp-content/uploads/2018/05/Policy-datahantering-D-sektionen.pdf">{{ strings.privacyPolicy }}</item>
-      <item href="https://d-sektionen.se/infomail/">{{ strings.unsubscribe }}</item>
+      <item
+        href="https://d-sektionen.se/wp-content/uploads/2018/05/Policy-datahantering-D-sektionen.pdf"
+        >{{ strings.privacyPolicy }}</item
+      >
+      <item href="https://d-sektionen.se/infomail/">{{
+        strings.unsubscribe
+      }}</item>
     </menu>
   </center>
 </container>
