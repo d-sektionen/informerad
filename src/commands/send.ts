@@ -14,6 +14,8 @@ import htmlCreator from "../modules/htmlCreator";
 import textCreator from "../modules/textCreator";
 import writeToFiles from "../modules/writeToFiles";
 import mailgunSender from "../modules/mailgunSender";
+import recipientExporter from "../modules/recipientExporter";
+import djangoBackendUserRetriever from "../modules/djangoBackendUserRetriever";
 
 inquirer.registerPrompt("datetime", inquirerDatepickerPrompt);
 
@@ -34,6 +36,9 @@ export default class Send extends Command {
     recipients: flags.string({
       char: "r",
       description: "path to json file of recipients"
+    }),
+    django_backend: flags.boolean({
+      description: "retrieve recipients from the D-sektionen Django backend"
     }),
     wp: flags.boolean({
       description: "retrieve recipients from Wordpress"
@@ -61,13 +66,25 @@ export default class Send extends Command {
     }),
     test: flags.boolean({
       description: "enable mailgun test mode"
+    }),
+    export_recipients: flags.string({
+      description: "path to json file which recipients are exported to."
     })
   };
 
   // the actual command, check oclif docs for more info.
   async run() {
     const { flags } = this.parse(Send);
-    const { wp, recipients, content, layout, schedule, test } = flags;
+    const {
+      django_backend,
+      wp,
+      recipients,
+      content,
+      layout,
+      schedule,
+      test,
+      export_recipients
+    } = flags;
     let { preview, title } = flags;
 
     // state variable that is passed through all the modules.
@@ -146,6 +163,19 @@ export default class Send extends Command {
       cli.action.stop();
     }
 
+    // Get recipients from the django backend if flag present.
+    if (django_backend) {
+      cli.action.start("Retrieving Django backend users");
+      state = await djangoBackendUserRetriever(state, userConfig.djangotoken);
+      cli.action.stop();
+    }
+
+    if (export_recipients) {
+      cli.action.start("Saving recipients to file.");
+      state = await recipientExporter(state, export_recipients);
+      cli.action.stop();
+    }
+
     // retrieve event data.
     cli.action.start("Retrieving event data");
     state = await getEventData(state);
@@ -191,9 +221,7 @@ export default class Send extends Command {
         {
           type: "confirm",
           name: "reallySend",
-          message: `Are you happy with the preview and ready to send to ${
-            state.recipients.length
-          } recipients?`,
+          message: `Are you happy with the preview and ready to send to ${state.recipients.length} recipients?`,
           default: false
         }
       ]);

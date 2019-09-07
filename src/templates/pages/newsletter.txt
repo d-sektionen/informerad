@@ -50,4 +50,4 @@ https://d-sektionen.se/socialamedier
 https://d-sektionen.se/wp-content/uploads/2018/05/Policy-datahantering-D-sektionen.pdf
 
 {{ strings.unsubscribe }}
-https://d-sektionen.se/infomail/
+https://medlem.d-sektionen.se/preferences
