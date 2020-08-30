@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const ENDPOINT =
-  "https://backend.d-sektionen.se/account/user/infomail_subscribers/";
+  "https://backend.d-sektionen.se/account/infomail-subscribers/";
 
 const axiosOptions = token => ({
   headers: {
