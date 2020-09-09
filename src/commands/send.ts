@@ -9,72 +9,72 @@ import wpUserRetriever from "../modules/wpUserRetriever";
 import fileUserRetriever from "../modules/fileUserRetriever";
 import getEventData from "../modules/getEventData";
 import getContent from "../modules/getContent";
-import getConfig from "../utils/getConfig";
 import htmlCreator from "../modules/htmlCreator";
 import textCreator from "../modules/textCreator";
 import writeToFiles from "../modules/writeToFiles";
 import mailgunSender from "../modules/mailgunSender";
 import recipientExporter from "../modules/recipientExporter";
 import djangoBackendUserRetriever from "../modules/djangoBackendUserRetriever";
+import Setting from "../utils/settings";
 
 inquirer.registerPrompt("datetime", inquirerDatepickerPrompt);
 
 const PREVIEW_TYPES = {
-  open: link => cli.open(link),
-  "open-linux": link => cli.open(link, { app: "xdg-open" }),
-  copy: link => clipboardy.write(link),
-  none: () => Promise.resolve()
+  open: (link) => cli.open(link),
+  "open-linux": (link) => cli.open(link, { app: "xdg-open" }),
+  copy: (link) => clipboardy.write(link),
+  none: () => Promise.resolve(),
 };
 
-export default class Send extends Command {
+export default class SendCommand extends Command {
   static description = "Generates and sends an email.";
 
   static flags = {
     help: flags.help({
-      char: "h"
+      char: "h",
     }),
     recipients: flags.string({
       char: "r",
-      description: "path to json file of recipients"
+      description: "path to json file of recipients",
     }),
     django_backend: flags.boolean({
-      description: "retrieve recipients from the D-sektionen Django backend"
+      description: "retrieve recipients from the D-sektionen Django backend",
     }),
     wp: flags.boolean({
-      description: "retrieve recipients from Wordpress"
+      description: "retrieve recipients from Wordpress",
     }),
     schedule: flags.boolean({
-      description: "get prompted to schedule sending"
+      description: "get prompted to schedule sending",
     }),
     content: flags.string({
-      description: "path to folder of mail content"
+      description: "path to folder of mail content",
     }),
     preview: flags.string({
       char: "p",
       description: "type of preview, will prompt if omitted",
-      options: Object.keys(PREVIEW_TYPES)
+      options: Object.keys(PREVIEW_TYPES),
     }),
     title: flags.string({
       char: "t",
-      description: "the email title, aka subject, will prompt if omitted"
+      description: "the email title, aka subject, will prompt if omitted",
     }),
     layout: flags.string({
       char: "l",
       description: "the email layout template",
       options: ["newsletter", "announcement"],
-      default: "newsletter"
+      default: "newsletter",
     }),
     test: flags.boolean({
-      description: "enable mailgun test mode"
+      description: "enable mailgun test mode",
     }),
     export_recipients: flags.string({
-      description: "path to json file which recipients are exported to."
-    })
+      description: "path to json file which recipients are exported to.",
+    }),
   };
 
   // the actual command, check oclif docs for more info.
   async run() {
-    const { flags } = this.parse(Send);
+    const { flags } = this.parse(SendCommand);
     const {
       django_backend,
       wp,
@@ -83,7 +83,7 @@ export default class Send extends Command {
       layout,
       schedule,
       test,
-      export_recipients
+      export_recipients,
     } = flags;
     let { preview, title } = flags;
 
@@ -95,15 +95,12 @@ export default class Send extends Command {
       // TODO: move these badboys to flags
       from: {
         address: "infomail@d-sektionen.se",
-        text: "D-sektionens infomail"
+        text: "D-sektionens infomail",
       },
 
       scheduled: "",
-      testing: false
+      testing: false,
     };
-
-    // loads config user has set using the "setting" command
-    const userConfig = await getConfig(this.config);
 
     // module to import
     state = await textStrings(state);
@@ -128,9 +125,9 @@ export default class Send extends Command {
             ":",
             "MM",
             ":",
-            "ss"
-          ]
-        }
+            "ss",
+          ],
+        },
       ]);
       state.scheduled = new Date(datetime).toUTCString();
     }
@@ -140,8 +137,8 @@ export default class Send extends Command {
       const { newTitle } = await inquirer.prompt([
         {
           name: "newTitle",
-          message: "What title should your email have?"
-        }
+          message: "What title should your email have?",
+        },
       ]);
       title = newTitle;
     }
@@ -157,8 +154,8 @@ export default class Send extends Command {
     if (wp) {
       cli.action.start("Retrieving Wordpress users");
       state = await wpUserRetriever(state, {
-        username: userConfig.wpuser,
-        password: userConfig.wpkey
+        username: await Setting.WP_USER.getValue(),
+        password: await Setting.WP_KEY.getValue(),
       });
       cli.action.stop();
     }
@@ -166,7 +163,10 @@ export default class Send extends Command {
     // Get recipients from the django backend if flag present.
     if (django_backend) {
       cli.action.start("Retrieving Django backend users");
-      state = await djangoBackendUserRetriever(state, userConfig.djangotoken);
+      state = await djangoBackendUserRetriever(
+        state,
+        await Setting.DJANGO_TOKEN.getValue()
+      );
       cli.action.stop();
     }
 
@@ -206,8 +206,8 @@ export default class Send extends Command {
           type: "list",
           name: "previewType",
           message: "What type of preview do you want?",
-          choices: Object.keys(PREVIEW_TYPES)
-        }
+          choices: Object.keys(PREVIEW_TYPES),
+        },
       ]);
       preview = previewType;
     }
@@ -222,15 +222,15 @@ export default class Send extends Command {
           type: "confirm",
           name: "reallySend",
           message: `Are you happy with the preview and ready to send to ${state.recipients.length} recipients?`,
-          default: false
-        }
+          default: false,
+        },
       ]);
       if (!reallySend) this.exit();
     }
 
     // Send email
     cli.action.start("Sending email using mailgun");
-    state = await mailgunSender(state, userConfig.mgkey);
+    state = await mailgunSender(state, await Setting.MG_KEY.getValue());
     cli.action.stop();
   }
 }

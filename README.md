@@ -10,39 +10,33 @@ Work in progress.
 [![License](https://img.shields.io/npm/l/informerad.svg)](https://github.com/d-sektionen/informerad/blob/master/package.json)
 
 <!-- toc -->
-
-- [Usage](#usage)
-- [Commands](#commands)
-  <!-- tocstop -->
+* [InformeraD](#informerad)
+* [Usage](#usage)
+* [Commands](#commands)
+<!-- tocstop -->
 
 # Usage
 
 <!-- usage -->
-
 ```sh-session
 $ npm install -g informerad
 $ informerad COMMAND
 running command...
 $ informerad (-v|--version|version)
-informerad/1.0.0 linux-x64 node-v8.12.0
+informerad/1.0.0 linux-x64 node-v12.17.0
 $ informerad --help [COMMAND]
 USAGE
   $ informerad COMMAND
 ...
 ```
-
 <!-- usagestop -->
 
 # Commands
 
 <!-- commands -->
-
-- [InformeraD](#informerad)
-- [Usage](#usage)
-- [Commands](#commands)
-  - [`informerad help [COMMAND]`](#informerad-help-command)
-  - [`informerad name [FILE]`](#informerad-name-file)
-  - [`informerad setting SETTING VALUE`](#informerad-setting-setting-value)
+* [`informerad help [COMMAND]`](#informerad-help-command)
+* [`informerad send`](#informerad-send)
+* [`informerad setting SETTING VALUE`](#informerad-setting-setting-value)
 
 ## `informerad help [COMMAND]`
 
@@ -61,21 +55,29 @@ OPTIONS
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.1.4/src/commands/help.ts)_
 
-## `informerad name [FILE]`
+## `informerad send`
 
-describe the command here
+Generates and sends an email.
 
 ```
 USAGE
-  $ informerad name [FILE]
+  $ informerad send
 
 OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
+  -h, --help                               show CLI help
+  -l, --layout=newsletter|announcement     [default: newsletter] the email layout template
+  -p, --preview=open|open-linux|copy|none  type of preview, will prompt if omitted
+  -r, --recipients=recipients              path to json file of recipients
+  -t, --title=title                        the email title, aka subject, will prompt if omitted
+  --content=content                        path to folder of mail content
+  --django_backend                         retrieve recipients from the D-sektionen Django backend
+  --export_recipients=export_recipients    path to json file which recipients are exported to.
+  --schedule                               get prompted to schedule sending
+  --test                                   enable mailgun test mode
+  --wp                                     retrieve recipients from Wordpress
 ```
 
-_See code: [src/commands/name.ts](https://github.com/d-sektionen/informerad/blob/v1.0.0/src/commands/name.ts)_
+_See code: [src/commands/send.ts](https://github.com/d-sektionen/informerad/blob/v1.0.0/src/commands/send.ts)_
 
 ## `informerad setting SETTING VALUE`
 
@@ -85,10 +87,13 @@ describe the command here
 USAGE
   $ informerad setting SETTING VALUE
 
+ARGUMENTS
+  SETTING  hhehe
+  VALUE    The string value of the setting
+
 OPTIONS
   -h, --help  show CLI help
 ```
 
 _See code: [src/commands/setting.ts](https://github.com/d-sektionen/informerad/blob/v1.0.0/src/commands/setting.ts)_
-
 <!-- commandsstop -->
