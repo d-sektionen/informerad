@@ -1,10 +1,10 @@
 import * as fs from "fs-extra";
 import * as path from "path";
 
-const createPath = (config) => path.join(config.configDir, "config.json");
+const createPath = (configDir: string) => path.join(configDir, "config.json");
 
-async function getConfig(config) {
-  const configPath = createPath(config);
+async function getConfig(configDir: string) {
+  const configPath = createPath(configDir);
   let jsonConfig;
   try {
     jsonConfig = await fs.readJSON(configPath);
@@ -40,7 +40,7 @@ class Setting {
 
   static getFromKey(key: string): Setting | null {
     return (
-      Setting.settings.find((setting: Setting) => (setting.key = key)) || null
+      Setting.settings.find((setting: Setting) => setting.key === key) || null
     );
   }
 
@@ -58,17 +58,17 @@ class Setting {
     this.description = description;
   }
 
-  async getValue(config) {
-    const c = await getConfig(config);
+  async getValue(configDir: string) {
+    const c = await getConfig(configDir);
     return c[this.key];
   }
 
-  async setValue(config, value: string) {
-    const userConfig = await getConfig(config);
+  async setValue(configDir: string, value: string) {
+    const userConfig = await getConfig(configDir);
 
     const newConfig = { ...userConfig, [this.key]: value };
 
-    await fs.outputJson(createPath(config), newConfig);
+    await fs.outputJson(createPath(configDir), newConfig);
   }
 }
 

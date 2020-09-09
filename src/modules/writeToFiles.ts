@@ -1,40 +1,43 @@
 import * as fs from "fs-extra";
 import * as path from "path";
 import slugify from "slugify";
-import mustache = require("mustache");
+import * as mustache from "mustache";
 import { templatesPath } from "./htmlCreator";
+import State from "../utils/state";
 
-async function writeToFiles(state, folder) {
-  const files = ["txt", "html", "preview.html"].reduce(
-    (prev, curr) => ({
-      ...prev,
-      [curr]: path.join(
-        folder,
-        "output",
-        `${slugify(state.title).toLowerCase()}-${state.lang}.${curr}`
-      )
-    }),
-    {}
+async function writeToFiles(state: State, folder: string): Promise<void> {
+  const [txtFile, htmlFile, previewFile] = [
+    "txt",
+    "html",
+    "preview.html",
+  ].map((extension) =>
+    path.join(
+      folder,
+      "output",
+      `${slugify(state.title).toLowerCase()}.${extension}`
+    )
   );
-  await fs.outputFile(files.html, state.html);
-  await fs.outputFile(files.txt, state.text);
+  await fs.outputFile(htmlFile, state.html);
+  await fs.outputFile(txtFile, state.text);
 
-  const { size: htmlSize } = await fs.stat(files.html);
-  const { size: textSize } = await fs.stat(files.txt);
+  const { size: htmlSize } = await fs.stat(htmlFile);
+  const { size: textSize } = await fs.stat(txtFile);
 
-  let template = await fs.readFile(path.join(templatesPath, `preview.html`));
-  template = template.toString();
+  const templateFile = await fs.readFile(
+    path.join(templatesPath, `preview.html`)
+  );
+  const template = templateFile.toString();
 
   const previewHtml = mustache.render(template, {
-    textOutput: files.txt,
-    htmlOutput: files.html,
+    textOutput: txtFile,
+    htmlOutput: htmlFile,
     textSize,
-    htmlSize
+    htmlSize,
   });
 
-  await fs.outputFile(files["preview.html"], previewHtml);
+  await fs.outputFile(previewFile, previewHtml);
 
-  return { ...state, preview: files["preview.html"] };
+  state.preview = previewFile;
 }
 
 export default writeToFiles;

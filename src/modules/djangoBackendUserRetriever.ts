@@ -1,32 +1,27 @@
 import axios from "axios";
+import State from "../utils/state";
+import { Recipient } from "../utils/models";
 
-const ENDPOINT =
-  "https://backend.d-sektionen.se/account/infomail-subscribers/";
+const ENDPOINT = "https://backend.d-sektionen.se/account/infomail-subscribers/";
 
-const axiosOptions = token => ({
+const axiosOptions = (token: string) => ({
   headers: {
-    Authorization: `Token ${token}`
-  }
+    Authorization: `Token ${token}`,
+  },
 });
 
-const djangoBackendUserRetriever = (state, token) => {
-  return axios.get(ENDPOINT, axiosOptions(token)).then(res => {
-    // recipients already in the state before this module was run.
-    const oldRecipients = Object.prototype.hasOwnProperty.call(
-      state,
-      "recipients"
-    )
-      ? state.recipients
-      : [];
+const djangoBackendUserRetriever = async (
+  state: State,
+  token: string
+): Promise<void> => {
+  const res = await axios.get(ENDPOINT, axiosOptions(token));
 
-    return Promise.resolve({
-      ...state,
-      recipients: [
-        ...oldRecipients,
-        ...res.data.map(user => ({ email: user.email, name: user.pretty_name }))
-      ]
-    });
-  });
+  state.addRecipients(
+    res.data.map(
+      (user: { email: string; pretty_name: string }) =>
+        new Recipient(user.email, user.pretty_name)
+    )
+  );
 };
 
 export default djangoBackendUserRetriever;

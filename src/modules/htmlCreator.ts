@@ -9,95 +9,111 @@ const htmlMinifier = require("html-minifier").minify;
 const md = require("markdown-it")({ linkify: true });
 import * as path from "path";
 import * as fs from "fs-extra";
+import State from "../utils/state";
 
 export const templatesPath = path.resolve(__dirname, "../templates");
 
-const applyMustache = (template, templateBody, data) =>
-  new Promise(resolve => {
-    const view = { ...data, md: () => (text, r) => md.render(r(text)) };
-    const html = template;
-    const newHtml = mustache.render(html, view, { body: templateBody });
-    resolve(newHtml);
-  });
+const applyMustache = async (
+  template: string,
+  templateBody: string,
+  data: object
+): Promise<string> => {
+  const view = {
+    ...data,
+    md: () => (text: string, r: (text: string) => string) => md.render(r(text)),
+  };
+  const html = template;
+  const newHtml = mustache.render(html, view, { body: templateBody });
+  return newHtml;
+};
 
-const applyInky = htmlString =>
-  new Promise(resolve => {
-    const i = new Inky({});
-    const newHtml = cheerio.load(htmlString, { decodeEntities: false });
-    resolve(i.releaseTheKraken(newHtml, { decodeEntities: true }));
-  });
+const applyInky = (htmlString: string): string => {
+  const i = new Inky({});
+  const newHtml = cheerio.load(htmlString, { decodeEntities: false });
+  return i.releaseTheKraken(newHtml, { decodeEntities: true });
+};
 
-const getCssFromScss = scssPath => {
+const getCssFromScss = (scssPath: string) => {
   const scss = sass.renderSync({
     file: scssPath,
-    includePaths: ["node_modules/foundation-emails/scss"]
+    includePaths: ["node_modules/foundation-emails/scss"],
   });
   return scss.css.toString("utf8");
 };
 
-const applyUncss = (htmlString, cssString) =>
+const applyUncss = async (
+  htmlString: string,
+  cssString: string
+): Promise<{ htmlString: string; cssString: string }> =>
   new Promise((resolve, reject) => {
-    uncss(htmlString, { raw: cssString }, (error, output) => {
+    uncss(htmlString, { raw: cssString }, (error: Error, output: string) => {
       if (error) reject(error);
       resolve({ htmlString, cssString: output });
     });
   });
 
-const applyInliner = (htmlString, cssString) =>
-  new Promise((resolve, reject) => {
-    const mqCss = siphon(cssString);
+const applyInliner = async (
+  htmlString: string,
+  cssString: string
+): Promise<string> => {
+  const mqCss = siphon(cssString);
 
-    inlineCss(htmlString, {
-      extraCss: cssString,
-      url: " ",
-      applyStyleTags: false,
-      removeStyleTags: true,
-      preserveMediaQueries: true,
-      removeLinkTags: false
-    })
-      .then(html => {
-        const newHtml = html.replace(
-          "<!-- <style> -->",
-          `<style>${mqCss}</style>`
-        );
-        resolve(newHtml);
-      })
-      .catch(reject);
+  const html = await inlineCss(htmlString, {
+    extraCss: cssString,
+    url: " ",
+    applyStyleTags: false,
+    removeStyleTags: true,
+    preserveMediaQueries: true,
+    removeLinkTags: false,
   });
 
-const applyMinifier = htmlString =>
-  new Promise(resolve => {
-    resolve(
-      htmlMinifier(htmlString, {
-        collapseWhitespace: true,
-        minifyCSS: true
-      })
-    );
+  const newHtml = html.replace("<!-- <style> -->", `<style>${mqCss}</style>`);
+  return newHtml;
+};
+
+const applyMinifier = (htmlString: string): string =>
+  htmlMinifier(htmlString, {
+    collapseWhitespace: true,
+    minifyCSS: true,
   });
 
-async function htmlCreator(state, type) {
-  let template = await fs.readFile(
+async function htmlCreator(state: State, type: string): Promise<void> {
+  const template = await fs.readFile(
     path.join(templatesPath, "pages", `${type}.html`)
   );
-  template = template.toString();
-  let layout = await fs.readFile(path.join(templatesPath, "layout.html"));
-  layout = layout.toString();
+  const templateString = template.toString();
+  const layout = await fs.readFile(path.join(templatesPath, "layout.html"));
+  const layoutString = layout.toString();
 
-  return applyMustache(layout, template, {
+  let htmlString = await applyMustache(layoutString, templateString, {
     subject: state.title,
     ...state.data,
-    strings: state.strings
-  })
-    .then(htmlString => applyInky(htmlString))
-    .then(htmlString =>
-      applyUncss(
-        htmlString,
-        getCssFromScss(path.join(templatesPath, "scss", "app.scss"))
-      )
-    )
-    .then(({ htmlString, cssString }) => applyInliner(htmlString, cssString))
-    .then(htmlString => applyMinifier(htmlString))
-    .then(htmlString => Promise.resolve({ ...state, html: htmlString }));
+    strings: state.strings,
+  });
+  htmlString = applyInky(htmlString);
+  let cssString;
+  ({ htmlString, cssString } = await applyUncss(
+    htmlString,
+    getCssFromScss(path.join(templatesPath, "scss", "app.scss"))
+  ));
+  htmlString = await applyInliner(htmlString, cssString);
+  htmlString = applyMinifier(htmlString);
+  state.html = htmlString;
+  // return applyMustache(layoutString, templateString, {
+  //   subject: state.title,
+  //   ...state.data,
+  //   strings: state.strings,
+  // })
+  //   .then((htmlString) => applyInky(htmlString))
+  //   .then((htmlString) =>
+  //     applyUncss(
+  //       htmlString,
+  //       getCssFromScss(path.join(templatesPath, "scss", "app.scss"))
+  //     )
+  //   )
+  //   .then(({ htmlString, cssString }) => applyInliner(htmlString, cssString))
+  //   .then((htmlString) => applyMinifier(htmlString))
+  //   .then((htmlString) => Promise.resolve({ ...state, html: htmlString }));
 }
 
 export default htmlCreator;

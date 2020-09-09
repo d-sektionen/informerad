@@ -1,3 +1,5 @@
+import State from "../utils/state";
+
 const sv = {
   looksWierd: "Ser mailet konstigt ut? Läs på d-sektionen.se",
   readMore: "Läs mer",
@@ -29,46 +31,45 @@ const sv = {
     "september",
     "oktober",
     "november",
-    "december"
-  ]
+    "december",
+  ],
 };
 
-const en = {
-  ...sv,
-  looksWierd: "Does this email look strange? Read at d-sektionen.se",
-  readMore: "Read more",
-  upcomingEvents: "Upcoming events",
-  viewCalendar: "View calendar",
-  featuredJobs: "Featured jobs",
-  showAllJobs: "Show all jobs",
-  socialMedia: "Social media",
-  facebookGroup: "Facebook group",
-  moreSocialMedia: "More social media",
-  address:
-    "Datateknologsektionen, Kårallen, Universitetet, 581&nbsp;83&nbsp;Linköping, Sweden",
-  questions: "Any questions, thoughts or entries? Send an email to",
-  privacyPolicy: "Privacy policy",
-  unsubscribe: "Unsubscribe",
+// const en = {
+//   ...sv,
+//   looksWierd: "Does this email look strange? Read at d-sektionen.se",
+//   readMore: "Read more",
+//   upcomingEvents: "Upcoming events",
+//   viewCalendar: "View calendar",
+//   featuredJobs: "Featured jobs",
+//   showAllJobs: "Show all jobs",
+//   socialMedia: "Social media",
+//   facebookGroup: "Facebook group",
+//   moreSocialMedia: "More social media",
+//   address:
+//     "Datateknologsektionen, Kårallen, Universitetet, 581&nbsp;83&nbsp;Linköping, Sweden",
+//   questions: "Any questions, thoughts or entries? Send an email to",
+//   privacyPolicy: "Privacy policy",
+//   unsubscribe: "Unsubscribe",
 
-  months: [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December"
-  ]
+//   months: [
+//     "January",
+//     "February",
+//     "March",
+//     "April",
+//     "May",
+//     "June",
+//     "July",
+//     "August",
+//     "September",
+//     "October",
+//     "November",
+//     "December",
+//   ],
+// };
+
+const textStrings = (state: State): void => {
+  state.strings = sv;
 };
-
-const strings = { sv, en };
-
-const textStrings = options =>
-  Promise.resolve({ ...options, strings: strings[options.lang] });
 
 export default textStrings;

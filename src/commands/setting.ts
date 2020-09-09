@@ -1,5 +1,4 @@
 import { Command, flags } from "@oclif/command";
-import * as fs from "fs-extra";
 import Setting from "../utils/settings";
 
 export default class SettingCommand extends Command {
@@ -36,7 +35,7 @@ hello world from ./src/hello.ts!
 
     const settingType = Setting.getFromKey(setting);
     if (!settingType) this.error("Unknown setting.");
-    await settingType.setValue(this.config, value);
+    await settingType.setValue(this.config.configDir, value);
 
     this.log(`"${setting}" set to: "${value}"`);
   }

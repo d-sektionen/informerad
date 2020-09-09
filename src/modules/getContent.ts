@@ -1,58 +1,51 @@
-import * as fs from "fs";
+import * as fs from "fs-extra";
 import * as path from "path";
 import * as matter from "gray-matter";
+import State from "../utils/state";
+import { Post, Intro } from "../utils/models";
 
-const getNews = basePath =>
-  new Promise(resolve => {
-    const newsFolderPath = path.join(basePath, "news");
-    const news = fs.readdirSync(newsFolderPath).map(file => {
-      const data = matter(
-        fs.readFileSync(path.join(newsFolderPath, file)).toString()
-      );
-      return {
-        ...data.data,
-        description: data.content
-      };
-    });
+const getNews = async (basePath: string) => {
+  const newsFolderPath = path.join(basePath, "news");
+  const newsFiles = await fs.readdir(newsFolderPath);
 
-    resolve({ news });
-  });
+  const news = await Promise.all(
+    newsFiles.map(async (file) => {
+      const fileBuffer = await fs.readFile(path.join(newsFolderPath, file));
 
-const getIntro = basePath =>
-  new Promise(resolve => {
-    try {
-      const data = matter(
-        fs.readFileSync(path.join(basePath, `intro.md`)).toString()
-      );
-      resolve({
-        intro: {
-          ...data.data,
-          text: data.content
-        }
-      });
-    } catch (err) {
-      resolve({
-        intro: null
-      });
-    }
-  });
+      const data = matter(fileBuffer.toString());
 
-const getContent = (state, folder) =>
-  new Promise((resolve, reject) => {
-    const basePath = path.resolve(folder);
+      const post = new Post(data.data.title, data.content);
+      if (data.data.img) post.setImg(data.data.img);
+      if (data.data.imgLink) post.setImgLink(data.data.imgLink);
+      if (data.data.link) post.setLink(data.data.link);
+      if (data.data.linkText) post.setLinkText(data.data.linkText);
+      return post;
+    })
+  );
 
-    const oldData = Object.prototype.hasOwnProperty.call(state, "data")
-      ? { ...state.data }
-      : {};
+  return news;
+};
 
-    // array of promises for async data fetching
-    const promiseData = [getNews(basePath), getIntro(basePath)];
+const getIntro = async (basePath: string): Promise<Intro | null> => {
+  try {
+    const fileBuffer = await fs.readFile(path.join(basePath, `intro.md`));
+    const data = matter(fileBuffer.toString());
 
-    Promise.all(promiseData)
-      .then(values => {
-        resolve({ ...state, data: Object.assign(oldData, ...values) });
-      })
-      .catch(reject);
-  });
+    const intro = new Intro(data.content);
+    if (data.data.img) intro.setImg(data.data.img);
+    if (data.data.imgText) intro.setImgText(data.data.imgText);
+    if (data.data.link) intro.setLink(data.data.link);
+    return intro;
+  } catch (err) {
+    return null;
+  }
+};
 
+const getContent = async (state: State, folder: string): Promise<void> => {
+  const basePath = path.resolve(folder);
+
+  const intro = await getIntro(basePath);
+  if (intro) state.setIntro(intro);
+  state.addNews(await getNews(basePath));
+};
 export default getContent;

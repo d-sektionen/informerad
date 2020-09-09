@@ -1,7 +1,7 @@
 import { Command, flags } from "@oclif/command";
 import cli from "cli-ux";
+import { write as writeToClipboard } from "clipboardy";
 import * as inquirer from "inquirer";
-import * as clipboardy from "clipboardy";
 import * as inquirerDatepickerPrompt from "inquirer-datepicker-prompt";
 
 import textStrings from "../modules/textStrings";
@@ -16,13 +16,14 @@ import mailgunSender from "../modules/mailgunSender";
 import recipientExporter from "../modules/recipientExporter";
 import djangoBackendUserRetriever from "../modules/djangoBackendUserRetriever";
 import Setting from "../utils/settings";
+import State from "../utils/state";
 
 inquirer.registerPrompt("datetime", inquirerDatepickerPrompt);
 
 const PREVIEW_TYPES = {
-  open: (link) => cli.open(link),
-  "open-linux": (link) => cli.open(link, { app: "xdg-open" }),
-  copy: (link) => clipboardy.write(link),
+  open: (link: string) => cli.open(link),
+  "open-linux": (link: string) => cli.open(link, { app: "xdg-open" }),
+  copy: (link: string) => writeToClipboard(link),
   none: () => Promise.resolve(),
 };
 
@@ -84,26 +85,15 @@ export default class SendCommand extends Command {
       schedule,
       test,
       export_recipients,
+      preview,
+      title,
     } = flags;
-    let { preview, title } = flags;
 
     // state variable that is passed through all the modules.
-    let state = {
-      lang: "sv",
-      recipients: [],
-      title: undefined,
-      // TODO: move these badboys to flags
-      from: {
-        address: "infomail@d-sektionen.se",
-        text: "D-sektionens infomail",
-      },
-
-      scheduled: "",
-      testing: false,
-    };
+    const state = new State();
 
     // module to import
-    state = await textStrings(state);
+    textStrings(state);
 
     state.testing = test;
 
@@ -133,6 +123,7 @@ export default class SendCommand extends Command {
     }
 
     // set title if unset.
+    let finalTitle = title;
     if (!title) {
       const { newTitle } = await inquirer.prompt([
         {
@@ -140,22 +131,22 @@ export default class SendCommand extends Command {
           message: "What title should your email have?",
         },
       ]);
-      title = newTitle;
+      finalTitle = newTitle;
     }
-    state.title = title;
+    state.setTitle(finalTitle || "");
 
     // Get recipients from file if specified.
     if (recipients) {
       cli.action.start("Retrieving recipients from file");
-      state = await fileUserRetriever(state, recipients);
+      await fileUserRetriever(state, recipients);
       cli.action.stop();
     }
     // Get recipients from Wordpress if flag present.
     if (wp) {
       cli.action.start("Retrieving Wordpress users");
-      state = await wpUserRetriever(state, {
-        username: await Setting.WP_USER.getValue(),
-        password: await Setting.WP_KEY.getValue(),
+      await wpUserRetriever(state, {
+        username: await Setting.WP_USER.getValue(this.config.configDir),
+        password: await Setting.WP_KEY.getValue(this.config.configDir),
       });
       cli.action.stop();
     }
@@ -163,43 +154,44 @@ export default class SendCommand extends Command {
     // Get recipients from the django backend if flag present.
     if (django_backend) {
       cli.action.start("Retrieving Django backend users");
-      state = await djangoBackendUserRetriever(
+      await djangoBackendUserRetriever(
         state,
-        await Setting.DJANGO_TOKEN.getValue()
+        await Setting.DJANGO_TOKEN.getValue(this.config.configDir)
       );
       cli.action.stop();
     }
 
     if (export_recipients) {
       cli.action.start("Saving recipients to file.");
-      state = await recipientExporter(state, export_recipients);
+      await recipientExporter(state, export_recipients);
       cli.action.stop();
     }
 
     // retrieve event data.
     cli.action.start("Retrieving event data");
-    state = await getEventData(state);
+    await getEventData(state);
     cli.action.stop();
 
     // retrieve content from specified folder.
     if (content) {
       cli.action.start("Retrieving content");
-      state = await getContent(state, content);
+      await getContent(state, content);
       cli.action.stop();
     }
 
     // generate text/html representations and create preview file.
     cli.action.start("Generating html");
-    state = await htmlCreator(state, layout);
+    await htmlCreator(state, layout);
     cli.action.stop();
     cli.action.start("Generating text version");
-    state = await textCreator(state, layout);
+    await textCreator(state, layout);
     cli.action.stop();
     cli.action.start("Saving files");
-    state = await writeToFiles(state, this.config.cacheDir);
+    await writeToFiles(state, this.config.cacheDir);
     cli.action.stop();
 
     // prompt user for how they want their preview if flag unset.
+    let finalPreview = preview;
     if (!preview) {
       const { previewType } = await inquirer.prompt([
         {
@@ -209,13 +201,13 @@ export default class SendCommand extends Command {
           choices: Object.keys(PREVIEW_TYPES),
         },
       ]);
-      preview = previewType;
+      finalPreview = previewType;
     }
 
     // run preview action
-    await PREVIEW_TYPES[preview](state.preview);
+    await PREVIEW_TYPES[finalPreview](state.preview);
 
-    if (preview != "none") {
+    if (finalPreview != "none") {
       // Prompt so user has time to look at preview.
       const { reallySend } = await inquirer.prompt([
         {
@@ -230,7 +222,7 @@ export default class SendCommand extends Command {
 
     // Send email
     cli.action.start("Sending email using mailgun");
-    state = await mailgunSender(state, await Setting.MG_KEY.getValue());
+    await mailgunSender(state, await Setting.MG_KEY.getValue(this.config));
     cli.action.stop();
   }
 }
