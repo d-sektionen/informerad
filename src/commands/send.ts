@@ -2,10 +2,11 @@ import { Command, flags } from "@oclif/command";
 import cli from "cli-ux";
 import { write as writeToClipboard } from "clipboardy";
 import * as inquirer from "inquirer";
+// @ts-ignore
 import * as inquirerDatepickerPrompt from "inquirer-datepicker-prompt";
 
 import textStrings from "../modules/textStrings";
-import wpUserRetriever from "../modules/wpUserRetriever";
+// import wpUserRetriever from "../modules/wpUserRetriever";
 import fileUserRetriever from "../modules/fileUserRetriever";
 import getEventData from "../modules/getEventData";
 import getContent from "../modules/getContent";
@@ -20,12 +21,16 @@ import State from "../utils/state";
 
 inquirer.registerPrompt("datetime", inquirerDatepickerPrompt);
 
-const PREVIEW_TYPES = {
-  open: (link: string) => cli.open(link),
-  "open-linux": (link: string) => cli.open(link, { app: "xdg-open" }),
-  copy: (link: string) => writeToClipboard(link),
-  none: () => Promise.resolve(),
+const previewLink = (type: string, link: string): void => {
+  if (type === "open") {
+    cli.open(link);
+  } else if (type === "open-linux") {
+    cli.open(link, { app: "xdg-open" });
+  } else if (type === "copy") {
+    writeToClipboard(link);
+  }
 };
+const PREVIEW_TYPES = ["open", "open-linux", "copy", "none"];
 
 export default class SendCommand extends Command {
   static description = "Generates and sends an email.";
@@ -41,9 +46,9 @@ export default class SendCommand extends Command {
     django_backend: flags.boolean({
       description: "retrieve recipients from the D-sektionen Django backend",
     }),
-    wp: flags.boolean({
-      description: "retrieve recipients from Wordpress",
-    }),
+    // wp: flags.boolean({
+    //   description: "retrieve recipients from Wordpress",
+    // }),
     schedule: flags.boolean({
       description: "get prompted to schedule sending",
     }),
@@ -78,7 +83,7 @@ export default class SendCommand extends Command {
     const { flags } = this.parse(SendCommand);
     const {
       django_backend,
-      wp,
+      // wp,
       recipients,
       content,
       layout,
@@ -141,15 +146,15 @@ export default class SendCommand extends Command {
       await fileUserRetriever(state, recipients);
       cli.action.stop();
     }
-    // Get recipients from Wordpress if flag present.
-    if (wp) {
-      cli.action.start("Retrieving Wordpress users");
-      await wpUserRetriever(state, {
-        username: await Setting.WP_USER.getValue(this.config.configDir),
-        password: await Setting.WP_KEY.getValue(this.config.configDir),
-      });
-      cli.action.stop();
-    }
+    // // Get recipients from Wordpress if flag present.
+    // if (wp) {
+    //   cli.action.start("Retrieving Wordpress users");
+    //   await wpUserRetriever(state, {
+    //     username: await Setting.WP_USER.getValue(this.config.configDir),
+    //     password: await Setting.WP_KEY.getValue(this.config.configDir),
+    //   });
+    //   cli.action.stop();
+    // }
 
     // Get recipients from the django backend if flag present.
     if (django_backend) {
@@ -181,10 +186,10 @@ export default class SendCommand extends Command {
 
     // generate text/html representations and create preview file.
     cli.action.start("Generating html");
-    await htmlCreator(state, layout);
+    await htmlCreator(state, layout || "");
     cli.action.stop();
     cli.action.start("Generating text version");
-    await textCreator(state, layout);
+    await textCreator(state, layout || "");
     cli.action.stop();
     cli.action.start("Saving files");
     await writeToFiles(state, this.config.cacheDir);
@@ -205,7 +210,7 @@ export default class SendCommand extends Command {
     }
 
     // run preview action
-    await PREVIEW_TYPES[finalPreview](state.preview);
+    previewLink(finalPreview || "", state.preview);
 
     if (finalPreview != "none") {
       // Prompt so user has time to look at preview.
@@ -222,7 +227,10 @@ export default class SendCommand extends Command {
 
     // Send email
     cli.action.start("Sending email using mailgun");
-    await mailgunSender(state, await Setting.MG_KEY.getValue(this.config));
+    await mailgunSender(
+      state,
+      await Setting.MG_KEY.getValue(this.config.configDir)
+    );
     cli.action.stop();
   }
 }

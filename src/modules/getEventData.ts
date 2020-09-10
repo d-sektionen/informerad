@@ -1,3 +1,4 @@
+// @ts-ignore
 import * as ICAL from "ical.js";
 import axios from "axios";
 import State from "../utils/state";
@@ -8,6 +9,7 @@ const calUrl =
 
 const makeMonthDayString = (date: Date, state: State) => {
   const day = date.getDate();
+  // @ts-ignore
   const month = state.strings.months[date.getMonth()];
   return `${day} ${month.substr(0, 3)}`;
 };

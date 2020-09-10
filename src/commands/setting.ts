@@ -34,7 +34,7 @@ hello world from ./src/hello.ts!
     const { setting, value } = args;
 
     const settingType = Setting.getFromKey(setting);
-    if (!settingType) this.error("Unknown setting.");
+    if (!settingType) return this.error("Unknown setting.");
     await settingType.setValue(this.config.configDir, value);
 
     this.log(`"${setting}" set to: "${value}"`);
