@@ -58,7 +58,7 @@ export default class SendCommand extends Command {
     preview: flags.string({
       char: "p",
       description: "type of preview, will prompt if omitted",
-      options: Object.keys(PREVIEW_TYPES),
+      options: PREVIEW_TYPES,
     }),
     title: flags.string({
       char: "t",
