@@ -203,7 +203,7 @@ export default class SendCommand extends Command {
           type: "list",
           name: "previewType",
           message: "What type of preview do you want?",
-          choices: Object.keys(PREVIEW_TYPES),
+          choices: PREVIEW_TYPES,
         },
       ]);
       finalPreview = previewType;

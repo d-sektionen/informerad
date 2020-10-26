@@ -3,3 +3,12 @@
 @import "foundation-emails";
 
 @import "template";
+
+// temporary fix,
+// https://github.com/foundation/foundation-emails/issues/1031
+th.callout-inner {
+  padding-top: $callout-padding;
+  padding-right: $callout-padding;
+  padding-bottom: $callout-padding;
+  padding-left: $callout-padding;
+}
