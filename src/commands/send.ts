@@ -16,6 +16,7 @@ import writeToFiles from "../modules/writeToFiles";
 import mailgunSender from "../modules/mailgunSender";
 import recipientExporter from "../modules/recipientExporter";
 import djangoBackendUserRetriever from "../modules/djangoBackendUserRetriever";
+import djangoBackendAllUserRetriever from "../modules/djangoBackendAllUserRetriever";
 import Setting from "../utils/settings";
 import State from "../utils/state";
 
@@ -46,6 +47,9 @@ export default class SendCommand extends Command {
     django_backend: flags.boolean({
       description: "retrieve recipients from the D-sektionen Django backend",
     }),
+    django_all_backend: flags.boolean({
+      description: "retrieve all recipients from the D-sektionen Django backend",
+    }),
     // wp: flags.boolean({
     //   description: "retrieve recipients from Wordpress",
     // }),
@@ -73,6 +77,7 @@ export default class SendCommand extends Command {
     test: flags.boolean({
       description: "enable mailgun test mode",
     }),
+
     export_recipients: flags.string({
       description: "path to json file which recipients are exported to.",
     }),
@@ -83,6 +88,7 @@ export default class SendCommand extends Command {
     const { flags } = this.parse(SendCommand);
     const {
       django_backend,
+      django_all_backend,
       // wp,
       recipients,
       content,
@@ -155,6 +161,17 @@ export default class SendCommand extends Command {
     //   });
     //   cli.action.stop();
     // }
+
+    // Get all recipients from the django backend if flag present.
+    // TODO might cause duplicates if both django_all_backend and django_backend is true, but just don't do that?
+    if (django_all_backend) {
+      cli.action.start("Retrieving all Django backend users");
+      await djangoBackendAllUserRetriever(
+        state,
+        await Setting.DJANGO_TOKEN.getValue(this.config.configDir)
+      );
+      cli.action.stop();
+    }
 
     // Get recipients from the django backend if flag present.
     if (django_backend) {
