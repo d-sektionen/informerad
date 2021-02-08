@@ -47,7 +47,7 @@ export default class SendCommand extends Command {
     django_backend: flags.boolean({
       description: "retrieve recipients from the D-sektionen Django backend",
     }),
-    django_all_backend: flags.boolean({
+    django_everyone_backend: flags.boolean({
       description: "retrieve all recipients from the D-sektionen Django backend",
     }),
     // wp: flags.boolean({
@@ -88,7 +88,7 @@ export default class SendCommand extends Command {
     const { flags } = this.parse(SendCommand);
     const {
       django_backend,
-      django_all_backend,
+      django_everyone_backend,
       // wp,
       recipients,
       content,
@@ -163,9 +163,8 @@ export default class SendCommand extends Command {
     // }
 
     // Get all recipients from the django backend if flag present.
-    // TODO might cause duplicates if both django_all_backend and django_backend is true, but just don't do that?
-    if (django_all_backend) {
-      cli.action.start("Retrieving all Django backend users");
+    if (django_everyone_backend) {
+      cli.action.start("Retrieving EVERYONE. (Even non-subscribers)");
       await djangoBackendAllUserRetriever(
         state,
         await Setting.DJANGO_TOKEN.getValue(this.config.configDir)
@@ -174,8 +173,8 @@ export default class SendCommand extends Command {
     }
 
     // Get recipients from the django backend if flag present.
-    if (django_backend) {
-      cli.action.start("Retrieving Django backend users");
+    else if (django_backend ) {
+      cli.action.start("Retrieving all subscribed users");
       await djangoBackendUserRetriever(
         state,
         await Setting.DJANGO_TOKEN.getValue(this.config.configDir)

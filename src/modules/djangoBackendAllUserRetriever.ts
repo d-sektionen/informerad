@@ -18,7 +18,7 @@ const djangoBackendAllUserRetriever = async (
 
   state.addRecipients(
     res.data.map(
-      (user: { email: string; pretty_name: string }) =>
+      (user: { email: string; pretty_name: string }) => 
         new Recipient(user.email, user.pretty_name)
     )
   );
