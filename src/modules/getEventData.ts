@@ -5,7 +5,7 @@ import State from "../utils/state";
 import { CalendarEvent } from "../utils/models";
 
 const calUrl =
-  "https://calendar.google.com/calendar/ical/webmaster%40d-sektionen.se/public/basic.ics";
+  "http://kalender.d-sektionen.se"
 
 const makeMonthDayString = (date: Date, state: State) => {
   const day = date.getDate();
