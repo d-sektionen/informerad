@@ -16,6 +16,7 @@ import writeToFiles from "../modules/writeToFiles";
 import mailgunSender from "../modules/mailgunSender";
 import recipientExporter from "../modules/recipientExporter";
 import djangoBackendUserRetriever from "../modules/djangoBackendUserRetriever";
+import djangoBackendAllUserRetriever from "../modules/djangoBackendAllUserRetriever";
 import Setting from "../utils/settings";
 import State from "../utils/state";
 
@@ -46,6 +47,9 @@ export default class SendCommand extends Command {
     django_backend: flags.boolean({
       description: "retrieve recipients from the D-sektionen Django backend",
     }),
+    django_everyone_backend: flags.boolean({
+      description: "retrieve all recipients from the D-sektionen Django backend",
+    }),
     // wp: flags.boolean({
     //   description: "retrieve recipients from Wordpress",
     // }),
@@ -73,6 +77,7 @@ export default class SendCommand extends Command {
     test: flags.boolean({
       description: "enable mailgun test mode",
     }),
+
     export_recipients: flags.string({
       description: "path to json file which recipients are exported to.",
     }),
@@ -83,6 +88,7 @@ export default class SendCommand extends Command {
     const { flags } = this.parse(SendCommand);
     const {
       django_backend,
+      django_everyone_backend,
       // wp,
       recipients,
       content,
@@ -156,9 +162,19 @@ export default class SendCommand extends Command {
     //   cli.action.stop();
     // }
 
+    // Get all recipients from the django backend if flag present.
+    if (django_everyone_backend) {
+      cli.action.start("Retrieving EVERYONE. (Even non-subscribers)");
+      await djangoBackendAllUserRetriever(
+        state,
+        await Setting.DJANGO_TOKEN.getValue(this.config.configDir)
+      );
+      cli.action.stop();
+    }
+
     // Get recipients from the django backend if flag present.
-    if (django_backend) {
-      cli.action.start("Retrieving Django backend users");
+    else if (django_backend ) {
+      cli.action.start("Retrieving all subscribed users");
       await djangoBackendUserRetriever(
         state,
         await Setting.DJANGO_TOKEN.getValue(this.config.configDir)
